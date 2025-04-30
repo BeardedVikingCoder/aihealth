@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FastBlog</title>
+    <style type="text/css">
+        /* CSS Variables for easy customization */
+        :root {
+            --primary-color: #3a86ff;
+            --secondary-color: #8338ec;
+            --accent-color: #ff006e;
+            --dark-color: #14213d;
+            --light-color: #f8f9fa;
+            --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            --content-width: 1200px;
+        }
+
+        /* Global styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-primary);
+        }
+
+        body {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            width: 100%;
+            max-width: var(--content-width);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav li {
+            margin-left: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--primary-color);
+        }
+
+        /* Hero section */
+        .hero {
+            padding: 4rem 0;
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+
+        /* Blog layout */
+        .blog-container {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 2rem;
+            margin: 3rem auto;
+        }
+
+        /* Ad spaces */
+        .ad-space {
+            background-color: rgba(0,0,0,0.05);
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 5px;
+        }
+
+        .ad-space.horizontal {
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ad-space.vertical {
+            min-height: 300px;
+        }
+
+        .ad-label {
+            font-size: 0.7rem;
+            color: #777;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Blog posts */
+        .blog-posts {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .blog-post {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .blog-post:hover {
+            transform: translateY(-5px);
+        }
+
+        .post-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .post-content {
+            padding: 1.5rem;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #777;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
+        .post-excerpt {
+            margin-bottom: 1.5rem;
+            color: #555;
+        }
+
+        .read-more {
+            display: inline-block;
+            background: var(--gradient);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .read-more:hover {
+            opacity: 0.9;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            align-self: start;
+        }
+
+        .sidebar-widget {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-widget h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .sidebar-widget h3:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--gradient);
+        }
+
+        .categories-list,
+        .recent-posts-list {
+            list-style: none;
+        }
+
+        .categories-list li,
+        .recent-posts-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .categories-list li:last-child,
+        .recent-posts-list li:last-child {
+            border-bottom: none;
+        }
+
+        .categories-list a,
+        .recent-posts-list a {
+            color: var(--dark-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .categories-list a:hover,
+        .recent-posts-list a:hover {
+            color: var(--primary-color);
+        }
+
+        /* Cookie Consent */
+        .cookie-consent {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 999;
+            transform: translateY(100%);
+            transition: transform 0.5s ease;
+        }
+
+        .cookie-consent.active {
+            transform: translateY(0);
+        }
+
+        .cookie-text {
+            flex: 1;
+            padding-right: 2rem;
+        }
+
+        .cookie-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .cookie-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .accept-cookies {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .decline-cookies {
+            background-color: #555;
+            color: white;
+        }
+
+        /* Admin panel */
+        .admin-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: background-color 0.3s;
+            z-index: 100;
+        }
+
+        .admin-link:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .admin-content {
+            background: white;
+            width: 90%;
+            max-width: 1000px;
+            border-radius: 15px;
+            padding: 2rem;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .admin-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--gradient);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
+        .admin-tab {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #777;
+            transition: color 0.3s;
+        }
+
+        .admin-tab.active {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content h3 {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .auth-form {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .auth-form h3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .github-token-help {
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            color: #666;
+        }
+
+        .github-token-help a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        /* Contact-submit button */
+        .contact-submit {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .contact-submit:hover {
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-section h3:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--gradient);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            font-size: 1.2rem;
+        }
+
+        .social-link:hover {
+            opacity: 1;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive design */
+        @media (max-width: 992px) {
+            .blog-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+                margin-top: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-toggle {
+                display: block;
+            }
+            
+            nav ul {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: var(--dark-color);
+                flex-direction: column;
+                padding: 1rem 0;
+                box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            }
+            
+            nav ul.show {
+                display: flex;
+            }
+            
+            nav li {
+                margin: 0;
+                text-align: center;
+            }
+            
+            nav a {
+                display: block;
+                padding: 0.5rem 0;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            
+            .admin-content {
+                padding: 1rem;
+                width: 95%;
+            }
+            
+            .admin-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .cookie-consent {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .cookie-text {
+                padding-right: 0;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo" id="site-title">FastBlog</a>
+                <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                </button>
+                <nav>
+                    <ul id="nav-menu">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content area - will be dynamically filled -->
+    <main id="main-content">
+        <!-- Hero section -->
+        <section class="hero">
+            <div class="container">
+                <h1 id="hero-title">FastBlog</h1>
+                <p id="hero-subtitle">A lightning-fast, SEO-optimized blog system</p>
+            </div>
+        </section>
+
+        <!-- Ad Space - Header -->
+        <div class="container">
+            <div class="ad-space horizontal" id="header-ad">
+                <div class="ad-label">Advertisement</div>
+                <div id="header-ad-content">
+                    <!-- Ad content will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Blog posts -->
+        <div class="container blog-container">
+            <div class="blog-posts" id="blog-posts">
+                <!-- Blog posts will be loaded here -->
+                <article class="blog-post">
+                    <img src="/api/placeholder/800/600" alt="Getting Started with FastBlog" class="post-image">
+                    <div class="post-content">
+                        <div class="post-meta">
+                            <span class="post-date">April 24, 2025</span>
+                            <span class="post-category">Technology</span>
+                        </div>
+                        <h2 class="post-title">Getting Started with FastBlog</h2>
+                        <p class="post-excerpt">Learn how to set up and customize your FastBlog site in minutes with this comprehensive guide.</p>
+                        <a href="blog/getting-started-with-fastblog-1.html" class="read-more">Read More</a>
+                    </div>
+                </article>
+                
+                <article class="blog-post">
+                    <img src="/api/placeholder/800/600" alt="5 Ways to Grow Your Blog Audience" class="post-image">
+                    <div class="post-content">
+                        <div class="post-meta">
+                            <span class="post-date">April 23, 2025</span>
+                            <span class="post-category">Tips & Tricks</span>
+                        </div>
+                        <h2 class="post-title">5 Ways to Grow Your Blog Audience</h2>
+                        <p class="post-excerpt">Discover proven strategies to increase your blog's readership and build a loyal audience that keeps coming back.</p>
+                        <a href="blog/5-ways-to-grow-your-blog-audience-2.html" class="read-more">Read More</a>
+                    </div>
+                </article>
+            </div>
+            
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- Ad Space - Sidebar Top -->
+                <div class="ad-space vertical" id="sidebar-top-ad">
+                    <div class="ad-label">Advertisement</div>
+                    <div id="sidebar-ad-content">
+                        <!-- Ad content will be injected here -->
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3>Categories</h3>
+                    <ul class="categories-list" id="categories-list">
+                        <li><a href="#">Technology</a></li>
+                        <li><a href="#">Tips & Tricks</a></li>
+                        <li><a href="#">Design</a></li>
+                        <li><a href="#">Marketing</a></li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3>Recent Posts</h3>
+                    <ul class="recent-posts-list" id="recent-posts-list">
+                        <li><a href="#">Getting Started with FastBlog</a></li>
+                        <li><a href="#">5 Ways to Grow Your Blog Audience</a></li>
+                        <li><a href="#">The Importance of Good Design</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Ad Space - Sidebar Bottom -->
+                <div class="ad-space vertical" id="sidebar-bottom-ad">
+                    <div class="ad-label">Advertisement</div>
+                    <div id="sidebar-bottom-ad-content">
+                        <!-- Ad content will be injected here -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 id="footer-title">FastBlog</h3>
+                    <p id="footer-description">A lightning-fast, SEO-optimized blog system perfect for personal and professional use.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" id="twitter-link" aria-label="Twitter"><i class="fas fa-twitter" aria-hidden="true"></i></a>
+                        <a href="#" class="social-link" id="facebook-link" aria-label="Facebook"><i class="fas fa-facebook-f" aria-hidden="true"></i></a>
+                        <a href="#" class="social-link" id="instagram-link" aria-label="Instagram"><i class="fas fa-instagram" aria-hidden="true"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope" aria-hidden="true"></i> <span id="contact-email">hello@fastblog.com</span></li>
+                        <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i> <span id="contact-address">123 Blog Street, Web City</span></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; <span id="current-year">2025</span> <span id="copyright-name">FastBlog</span>. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cookie Consent -->
+    <div class="cookie-consent" id="cookie-consent" role="alert" aria-live="polite">
+        <div class="cookie-text">
+            <p>This website uses cookies to ensure you get the best experience on our website. <a href="privacy-policy.html">Learn more</a></p>
+        </div>
+        <div class="cookie-buttons">
+            <button type="button" class="cookie-btn accept-cookies" id="accept-cookies">Accept</button>
+            <button type="button" class="cookie-btn decline-cookies" id="decline-cookies">Decline</button>
+        </div>
+    </div>
+
+    <!-- Admin Link (subtle) -->
+    <a href="#" class="admin-link" id="admin-link" aria-label="Admin panel">
+        <i class="fas fa-key" aria-hidden="true"></i>
+    </a>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="admin-panel" role="dialog" aria-labelledby="admin-panel-title" aria-hidden="true">
+        <div class="admin-close" id="admin-close" aria-label="Close admin panel">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </div>
+        <div class="admin-content">
+            <!-- Authentication Form -->
+            <div id="auth-form" class="auth-form">
+                <h3 id="admin-panel-title">Admin Login</h3>
+                <p>To edit your website, please enter your GitHub personal access token:</p>
+                <div class="form-group">
+                    <label for="github-token">GitHub Token</label>
+                    <input type="password" id="github-token" placeholder="Your GitHub Token">
+                </div>
+                <button type="button" class="contact-submit" id="auth-submit">Login</button>
+                <div class="github-token-help">
+                    <p>Don't have a token? <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener noreferrer">Create one here</a></p>
+                    <p>Select 'repo' scope when creating the token.</p>
+                </div>
+            </div>
+            
+            <!-- Admin Interface (hidden until authenticated) -->
+            <div id="admin-interface" style="display: none;">
+                <h2>Admin Dashboard</h2>
+                
+                <div class="admin-tabs" role="tablist">
+                    <button type="button" class="admin-tab active" data-tab="site-settings-tab" role="tab" aria-selected="true" aria-controls="site-settings-tab">Site Settings</button>
+                    <button type="button" class="admin-tab" data-tab="contact-tab" role="tab" aria-selected="false" aria-controls="contact-tab">Contact Info</button>
+                    <button type="button" class="admin-tab" data-tab="theme-tab" role="tab" aria-selected="false" aria-controls="theme-tab">Theme</button>
+                </div>
+                
+                <!-- Site Settings Tab -->
+                <div class="tab-content active" id="site-settings-tab" role="tabpanel" aria-labelledby="site-settings-tab">
+                    <h3>Site Settings</h3>
+                    
+                    <div class="form-group">
+                        <label for="site-title">Site Title</label>
+                        <input type="text" id="site-title" placeholder="Your Site Title">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="site-subtitle">Site Subtitle/Tagline</label>
+                        <input type="text" id="site-subtitle" placeholder="A brief description of your site">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="meta-description">Meta Description (For SEO)</label>
+                        <textarea id="meta-description" placeholder="Brief description for search engines"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="footer-text">Footer Description</label>
+                        <textarea id="footer-text" placeholder="Short text for footer"></textarea>

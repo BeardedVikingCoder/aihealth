@@ -1,0 +1,26 @@
+{
+  "siteTitle": "FastBlog",
+  "siteSubtitle": "A lightning-fast, SEO-optimized blog system",
+  "metaDescription": "A fast, lightweight blogging platform optimized for search engines",
+  "footerText": "A lightning-fast, SEO-optimized blog system perfect for personal and professional use.",
+  "copyrightName": "FastBlog",
+  "contact": {
+    "email": "hello@fastblog.com",
+    "address": "123 Blog Street, Web City",
+    "twitterUrl": "#",
+    "facebookUrl": "#",
+    "instagramUrl": "#"
+  },
+  "monetization": {
+    "adCodeHeader": "",
+    "adCodeSidebar": "",
+    "adCodeContent": "",
+    "adCodeFooter": "",
+    "analyticsCode": ""
+  },
+  "theme": {
+    "primary": "#3a86ff",
+    "secondary": "#8338ec",
+    "accent": "#ff006e"
+  }
+}
