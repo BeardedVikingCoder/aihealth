@@ -1,4 +1,439 @@
-<!DOCTYPE html>
+<!--Theme Tab -->
+                <div class="tab-content" id="theme-tab" role="tabpanel" aria-labelledby="theme-tab">
+                    <h3>Theme Colors</h3>
+                    <p>Choose a color scheme for your site:</p>
+                    
+                    <div class="color-picker-container">
+                        <div class="color-option active" style="background: linear-gradient(135deg, #3a86ff, #8338ec);" data-primary="#3a86ff" data-secondary="#8338ec" data-accent="#ff006e"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #ff595e, #ff006e);" data-primary="#ff595e" data-secondary="#ff006e" data-accent="#8338ec"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #06d6a0, #1b9aaa);" data-primary="#06d6a0" data-secondary="#1b9aaa" data-accent="#ff595e"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #ffca3a, #ff8600);" data-primary="#ffca3a" data-secondary="#ff8600" data-accent="#1b9aaa"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #8ac926, #38b000);" data-primary="#8ac926" data-secondary="#38b000" data-accent="#ff8600"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #4361ee, #3a0ca3);" data-primary="#4361ee" data-secondary="#3a0ca3" data-accent="#f72585"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #4cc9f0, #4895ef);" data-primary="#4cc9f0" data-secondary="#4895ef" data-accent="#f72585"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, #e76f51, #f4a261);" data-primary="#e76f51" data-secondary="#f4a261" data-accent="#2a9d8f"></div>
+                    </div>
+                    
+                    <button type="button" class="contact-submit" id="save-theme-btn">Save Theme</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" type="text/javascript"></script>
+
+    <!-- Main JavaScript Code -->
+    <script type="text/javascript">
+        // GitHub API configuration
+        const REPO_OWNER = 'YourGithubUsername'; // Replace with your GitHub username
+        const REPO_NAME = 'your-repo-name'; // Replace with your repository name
+        const DATA_FILE = 'data.json';
+        const POSTS_DIR = 'posts';
+        const BLOG_DIR = 'blog';
+        
+        let githubToken = '';
+        let currentSha = {};
+        let siteData = {};
+        let blogPosts = [];
+        
+        // Set current year in footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // DOM Elements
+        const adminLink = document.getElementById('admin-link');
+        const adminPanel = document.getElementById('admin-panel');
+        const adminClose = document.getElementById('admin-close');
+        const authForm = document.getElementById('auth-form');
+        const authSubmit = document.getElementById('auth-submit');
+        const adminInterface = document.getElementById('admin-interface');
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('nav-menu');
+        const cookieConsent = document.getElementById('cookie-consent');
+        const acceptCookies = document.getElementById('accept-cookies');
+        const declineCookies = document.getElementById('decline-cookies');
+        
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load site data
+            loadSiteData();
+            
+            // Check cookie consent
+            if (!localStorage.getItem('cookiesAccepted')) {
+                setTimeout(() => {
+                    cookieConsent.classList.add('active');
+                }, 2000);
+            }
+            
+            // Setup admin panel tabs
+            setupAdminTabs();
+        });
+        
+        // Toggle admin panel
+        adminLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            adminPanel.style.display = 'flex';
+            adminPanel.setAttribute('aria-hidden', 'false');
+            
+            // Check if already authenticated
+            const savedToken = localStorage.getItem('githubToken');
+            if (savedToken) {
+                githubToken = savedToken;
+                authForm.style.display = 'none';
+                adminInterface.style.display = 'block';
+                loadAdminData();
+            }
+        });
+        
+        adminClose.addEventListener('click', function() {
+            adminPanel.style.display = 'none';
+            adminPanel.setAttribute('aria-hidden', 'true');
+        });
+        
+        // Authenticate with GitHub token
+        authSubmit.addEventListener('click', function() {
+            const token = document.getElementById('github-token').value;
+            if (!token) {
+                alert('Please enter a token');
+                return;
+            }
+            
+            authenticateWithToken(token);
+        });
+        
+        // Mobile menu toggle
+        navToggle.addEventListener('click', function() {
+            const menuVisible = navMenu.classList.contains('show');
+            navMenu.classList.toggle('show');
+            navToggle.setAttribute('aria-expanded', menuVisible ? 'false' : 'true');
+        });
+        
+        // Cookie consent
+        acceptCookies.addEventListener('click', function() {
+            localStorage.setItem('cookiesAccepted', 'true');
+            cookieConsent.classList.remove('active');
+        });
+        
+        declineCookies.addEventListener('click', function() {
+            cookieConsent.classList.remove('active');
+        });
+        
+        // Functions
+        
+        // Authenticate with GitHub
+        async function authenticateWithToken(token) {
+            try {
+                // Test the token by getting repository data
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (response.ok) {
+                    githubToken = token;
+                    localStorage.setItem('githubToken', token);
+                    authForm.style.display = 'none';
+                    adminInterface.style.display = 'block';
+                    loadAdminData();
+                } else {
+                    alert('Invalid token or insufficient permissions');
+                }
+            } catch (error) {
+                console.error('Authentication error:', error);
+                alert('Error authenticating with GitHub');
+            }
+        }
+        
+        // Load site data from GitHub
+        async function loadSiteData() {
+            try {
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE}`, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const fileData = await response.json();
+                    currentSha[DATA_FILE] = fileData.sha;
+                    const content = atob(fileData.content); // Decode base64 content
+                    siteData = JSON.parse(content);
+                    updateSiteContent();
+                } else if (response.status === 404) {
+                    // Create default data if file doesn't exist yet
+                    siteData = {
+                        siteTitle: 'FastBlog',
+                        siteSubtitle: 'A lightning-fast, SEO-optimized blog system',
+                        metaDescription: 'A fast, lightweight blogging platform optimized for search engines',
+                        footerText: 'A lightning-fast, SEO-optimized blog system perfect for personal and professional use.',
+                        copyrightName: 'FastBlog',
+                        contact: {
+                            email: 'hello@fastblog.com',
+                            address: '123 Blog Street, Web City',
+                            twitterUrl: '#',
+                            facebookUrl: '#',
+                            instagramUrl: '#'
+                        },
+                        theme: {
+                            primary: '#3a86ff',
+                            secondary: '#8338ec',
+                            accent: '#ff006e'
+                        }
+                    };
+                    updateSiteContent();
+                }
+            } catch (error) {
+                console.error('Error loading site data:', error);
+            }
+        }
+        
+        // Update site content based on loaded data
+        function updateSiteContent() {
+            // Update site title and meta
+            document.title = siteData.siteTitle || 'FastBlog';
+            
+            const siteTitle = document.getElementById('site-title');
+            if (siteTitle) siteTitle.textContent = siteData.siteTitle || 'FastBlog';
+            
+            const heroTitle = document.getElementById('hero-title');
+            if (heroTitle) heroTitle.textContent = siteData.siteTitle || 'FastBlog';
+            
+            const heroSubtitle = document.getElementById('hero-subtitle');
+            if (heroSubtitle) heroSubtitle.textContent = siteData.siteSubtitle || 'A lightning-fast, SEO-optimized blog system';
+            
+            const footerTitle = document.getElementById('footer-title');
+            if (footerTitle) footerTitle.textContent = siteData.siteTitle || 'FastBlog';
+            
+            const footerDescription = document.getElementById('footer-description');
+            if (footerDescription) footerDescription.textContent = siteData.footerText || 'A lightning-fast, SEO-optimized blog system perfect for personal and professional use.';
+            
+            const copyrightName = document.getElementById('copyright-name');
+            if (copyrightName) copyrightName.textContent = siteData.copyrightName || 'FastBlog';
+            
+            // Update contact info
+            if (siteData.contact) {
+                const contactEmail = document.getElementById('contact-email');
+                if (contactEmail) contactEmail.textContent = siteData.contact.email || 'hello@fastblog.com';
+                
+                const contactAddress = document.getElementById('contact-address');
+                if (contactAddress) contactAddress.textContent = siteData.contact.address || '123 Blog Street, Web City';
+                
+                const twitterLink = document.getElementById('twitter-link');
+                if (twitterLink) twitterLink.href = siteData.contact.twitterUrl || '#';
+                
+                const facebookLink = document.getElementById('facebook-link');
+                if (facebookLink) facebookLink.href = siteData.contact.facebookUrl || '#';
+                
+                const instagramLink = document.getElementById('instagram-link');
+                if (instagramLink) instagramLink.href = siteData.contact.instagramUrl || '#';
+            }
+            
+            // Update theme colors
+            if (siteData.theme) {
+                document.documentElement.style.setProperty('--primary-color', siteData.theme.primary);
+                document.documentElement.style.setProperty('--secondary-color', siteData.theme.secondary);
+                document.documentElement.style.setProperty('--accent-color', siteData.theme.accent);
+                document.documentElement.style.setProperty('--gradient', `linear-gradient(135deg, ${siteData.theme.primary}, ${siteData.theme.secondary})`);
+            }
+        }
+        
+        // Load data into admin panel
+        function loadAdminData() {
+            // Site settings
+            const siteTitle = document.getElementById('site-title');
+            if (siteTitle) siteTitle.value = siteData.siteTitle || '';
+            
+            const siteSubtitle = document.getElementById('site-subtitle');
+            if (siteSubtitle) siteSubtitle.value = siteData.siteSubtitle || '';
+            
+            const metaDescription = document.getElementById('meta-description');
+            if (metaDescription) metaDescription.value = siteData.metaDescription || '';
+            
+            const footerText = document.getElementById('footer-text');
+            if (footerText) footerText.value = siteData.footerText || '';
+            
+            const copyrightName = document.getElementById('copyright-name-input');
+            if (copyrightName) copyrightName.value = siteData.copyrightName || '';
+            
+            // Contact info
+            if (siteData.contact) {
+                const contactEmailInput = document.getElementById('contact-email-input');
+                if (contactEmailInput) contactEmailInput.value = siteData.contact.email || '';
+                
+                const contactAddressInput = document.getElementById('contact-address-input');
+                if (contactAddressInput) contactAddressInput.value = siteData.contact.address || '';
+                
+                const twitterUrl = document.getElementById('twitter-url');
+                if (twitterUrl) twitterUrl.value = siteData.contact.twitterUrl || '';
+                
+                const facebookUrl = document.getElementById('facebook-url');
+                if (facebookUrl) facebookUrl.value = siteData.contact.facebookUrl || '';
+                
+                const instagramUrl = document.getElementById('instagram-url');
+                if (instagramUrl) instagramUrl.value = siteData.contact.instagramUrl || '';
+            }
+            
+            // Theme
+            if (siteData.theme) {
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('active');
+                    if (option.getAttribute('data-primary') === siteData.theme.primary) {
+                        option.classList.add('active');
+                    }
+                });
+            }
+        }
+        
+        // Set up admin tabs
+        function setupAdminTabs() {
+            const tabs = document.querySelectorAll('.admin-tab');
+            if (!tabs.length) return;
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Hide all tab contents
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Remove active class from all tabs
+                    tabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.setAttribute('aria-selected', 'false');
+                    });
+                    
+                    // Show selected tab content
+                    const tabId = this.getAttribute('data-tab');
+                    const tabContent = document.getElementById(tabId);
+                    if (tabContent) {
+                        tabContent.classList.add('active');
+                    }
+                    
+                    // Mark this tab as active
+                    this.classList.add('active');
+                    this.setAttribute('aria-selected', 'true');
+                });
+            });
+        }
+        
+        // Save site settings
+        async function saveSettings() {
+            if (!githubToken) {
+                alert('Please authenticate first');
+                return;
+            }
+            
+            const siteTitle = document.getElementById('site-title').value;
+            const siteSubtitle = document.getElementById('site-subtitle').value;
+            const metaDescription = document.getElementById('meta-description').value;
+            const footerText = document.getElementById('footer-text').value;
+            const copyrightName = document.getElementById('copyright-name-input').value;
+            
+            siteData.siteTitle = siteTitle;
+            siteData.siteSubtitle = siteSubtitle;
+            siteData.metaDescription = metaDescription;
+            siteData.footerText = footerText;
+            siteData.copyrightName = copyrightName;
+            
+            await saveSiteData('Update site settings');
+            alert('Settings saved successfully!');
+        }
+        
+        // Save contact info
+        async function saveContact() {
+            if (!githubToken) {
+                alert('Please authenticate first');
+                return;
+            }
+            
+            const email = document.getElementById('contact-email-input').value;
+            const address = document.getElementById('contact-address-input').value;
+            const twitterUrl = document.getElementById('twitter-url').value;
+            const facebookUrl = document.getElementById('facebook-url').value;
+            const instagramUrl = document.getElementById('instagram-url').value;
+            
+            siteData.contact = {
+                email,
+                address,
+                twitterUrl,
+                facebookUrl,
+                instagramUrl
+            };
+            
+            await saveSiteData('Update contact information');
+            alert('Contact information saved successfully!');
+        }
+        
+        // Save theme
+        async function saveTheme() {
+            if (!githubToken) {
+                alert('Please authenticate first');
+                return;
+            }
+            
+            const activeColor = document.querySelector('.color-option.active');
+            if (activeColor) {
+                siteData.theme = {
+                    primary: activeColor.getAttribute('data-primary'),
+                    secondary: activeColor.getAttribute('data-secondary'),
+                    accent: activeColor.getAttribute('data-accent')
+                };
+            }
+            
+            await saveSiteData('Update theme colors');
+            alert('Theme saved successfully!');
+        }
+        
+        // Save site data to GitHub
+        async function saveSiteData(commitMessage) {
+            try {
+                // Prepare the content for GitHub
+                const content = btoa(JSON.stringify(siteData, null, 2)); // base64 encode
+                
+                // Create the request body
+                const requestBody = {
+                    message: commitMessage,
+                    content: content
+                };
+                
+                // Add SHA if we have it (for updates)
+                if (currentSha[DATA_FILE]) {
+                    requestBody.sha = currentSha[DATA_FILE];
+                }
+                
+                // Send the request
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    currentSha[DATA_FILE] = result.content.sha;
+                    updateSiteContent();
+                } else {
+                    throw new Error('Failed to save data: ' + await response.text());
+                }
+            } catch (error) {
+                console.error('Error saving site data:', error);
+                alert('Error saving data: ' + error.message);
+            }
+        }
+        
+        // Add event listeners for save buttons
+        document.getElementById('save-settings-btn')?.addEventListener('click', saveSettings);
+        document.getElementById('save-contact-btn')?.addEventListener('click', saveContact);
+        document.getElementById('save-theme-btn')?.addEventListener('click', saveTheme);
+    </script>
+</body>
+</html><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -480,6 +915,31 @@
             text-decoration: none;
         }
 
+        /* Color picker */
+        .color-picker-container {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.active {
+            border: 2px solid black;
+        }
+
         /* Contact-submit button */
         .contact-submit {
             background: var(--gradient);
@@ -870,3 +1330,46 @@
                     <div class="form-group">
                         <label for="footer-text">Footer Description</label>
                         <textarea id="footer-text" placeholder="Short text for footer"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="copyright-name-input">Copyright Name</label>
+                        <input type="text" id="copyright-name-input" placeholder="Your Name or Company">
+                    </div>
+                    
+                    <button type="button" class="contact-submit" id="save-settings-btn">Save Settings</button>
+                </div>
+                
+                <!-- Contact Info Tab -->
+                <div class="tab-content" id="contact-tab" role="tabpanel" aria-labelledby="contact-tab">
+                    <h3>Contact Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="contact-email-input">Email Address</label>
+                        <input type="email" id="contact-email-input" placeholder="your@email.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-address-input">Address</label>
+                        <input type="text" id="contact-address-input" placeholder="Your address (optional)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="twitter-url">Twitter URL</label>
+                        <input type="url" id="twitter-url" placeholder="https://twitter.com/yourusername">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="facebook-url">Facebook URL</label>
+                        <input type="url" id="facebook-url" placeholder="https://facebook.com/yourusername">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="instagram-url">Instagram URL</label>
+                        <input type="url" id="instagram-url" placeholder="https://instagram.com/yourusername">
+                    </div>
+                    
+                    <button type="button" class="contact-submit" id="save-contact-btn">Save Contact Info</button>
+                </div>
+                
+                <!--
